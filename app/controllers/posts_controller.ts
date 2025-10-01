@@ -8,11 +8,15 @@ export default class PostsController {
   async index({ request }: HttpContext) {
 
     const page = request.input('page', 1)
-    const posts = await Post.query()
-      .preload('comments')
-      .paginate(page, 25)
+    const userId = request.input('user-id')
+    const postQuery = Post.query()
+      .preload('comments', q => q.preload('user'))
+      .preload('user')
 
-    return posts
+    if (userId)
+      postQuery.where('userId', userId)
+
+    return await postQuery.paginate(page, 25)
   }
 
   /**
@@ -74,10 +78,16 @@ export default class PostsController {
   /**
    * Delete record
    */
-  async destroy({ params }: HttpContext) {
+  async destroy({ params, auth, response }: HttpContext) {
     const id = params.id
-
+    const user = auth.user!
     const post = await Post.findOrFail(id)
+
+    if (post.userId != user.id) {
+      return response.forbidden({
+        error: "non puoi cancellare un post che non sia il tuo"
+      })
+    }
 
     await post.delete()
 
