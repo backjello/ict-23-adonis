@@ -28,6 +28,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @hasMany(() => Post)
   declare posts: HasMany<typeof Post>
 
+  @column()
+  declare role: 'user' | 'admin'
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

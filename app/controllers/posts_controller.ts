@@ -1,4 +1,6 @@
+import { deleteOrUpdatePost } from '#abilities/main'
 import Post from '#models/post'
+import { createPostValidator } from '#validators/post'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class PostsController {
@@ -23,21 +25,25 @@ export default class PostsController {
    * Handle form submission for the create action
    */
   async store({ request, response, auth }: HttpContext) {
-
     // all'interno di auth.user ho i dati dell'utente autenticato
     // (in automatico se la rotta è protta da auth_middleware)
     const user = auth.user!
     const userId = user.id
     // solo per test
-    const data = request.all()
+    // const data = request.all()
     // imposto che lo user id è quello dell'utente loggato
-    data.userId = userId
+    // data.userId = userId
 
-    if (!data.title) // a titolo di esempio
-      return response.badRequest("devi passarmi il titolo")
+    // if (!data.title || data.title.length > 255) // a titolo di esempio
+    //   return response.badRequest("devi passarmi il titolo")
+
+    const data = await request.validateUsing(createPostValidator)
 
     // da non fare, servirebbe validazione input
-    const newPost = await Post.create(data)
+    const newPost = await Post.create({
+      ...data,
+      userId: user.id
+    })
 
     return response.created(newPost)
   }
@@ -58,10 +64,15 @@ export default class PostsController {
   /**
    * Handle form submission for the edit action
    */
-  async update({ params, request }: HttpContext) {
+  async update({ params, request, bouncer, response }: HttpContext) {
     const id = params.id
 
     const post = await Post.findOrFail(id)
+
+    if (await bouncer.denies(deleteOrUpdatePost, post))
+      return response.forbidden({
+        error: "non puoi aggiornare il post"
+      })
 
     const data = request.all()
 
@@ -78,18 +89,23 @@ export default class PostsController {
   /**
    * Delete record
    */
-  async destroy({ params, auth, response }: HttpContext) {
+  async destroy({ params, auth, response, bouncer }: HttpContext) {
     const id = params.id
     const user = auth.user!
     const post = await Post.findOrFail(id)
 
-    if (post.userId != user.id) {
-      return response.forbidden({
-        error: "non puoi cancellare un post che non sia il tuo"
-      })
-    }
+    // if (post.userId != user.id || user.role != 'admin') {
+    //   return response.forbidden({
+    //     error: "non puoi cancellare un post che non sia il tuo"
+    //   })
+    // }
+    if (await bouncer.allows(deleteOrUpdatePost, post))
+      await post.delete()
 
-    await post.delete()
+    else
+      return response.forbidden({
+        error: "devi essere un admin o il post deve essere tuo"
+      })
 
   }
 }

@@ -49,7 +49,11 @@ router.group(() => {
   // rotta delete
   router.delete('/users/:id', '#controllers/users_controller.destroy')
   router.resource('posts', '#controllers/posts_controller')
-  router.resource('comments', '#controllers/comments_controller')
+
+  router.resource('comments', '#controllers/comments_controller').apiOnly().except(['index'])
+
+  // questa rotta sarà accessibile solo se sono admin
+  router.get('comments', '#controllers/comments_controller.index').use(middleware.admin())
 
   router.get('me', '#controllers/auth_controller.me')
 
