@@ -1,0 +1,4 @@
+- aggiungere la relazione tra post e utenti (aggiorniamo anche i controller)
+- aggiungere la relazione tra commenti e utenti
+- creare un endpoint che dato un utente faccia vedere tutti i suoi post
+- fare in modo che la delete del post possa essere fatta solo dal proprietario del post
