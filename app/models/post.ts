@@ -1,5 +1,7 @@
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import type { HasMany } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
+import Comment from './comment.js'
 
 export default class Post extends BaseModel {
   @column({ isPrimary: true })
@@ -16,6 +18,9 @@ export default class Post extends BaseModel {
 
   @column()
   declare category: 'public' | 'private' | 'free_to_use'
+
+  @hasMany(() => Comment)
+  declare comments: HasMany<typeof Comment>
 
   // se voglio impostare un nome diverso della colonna lo posso fare con
   // {columnName:'numberOfViews'}

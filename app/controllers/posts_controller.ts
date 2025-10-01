@@ -9,6 +9,7 @@ export default class PostsController {
 
     const page = request.input('page', 1)
     const posts = await Post.query()
+      .preload('comments')
       .paginate(page, 25)
 
     return posts
@@ -17,9 +18,16 @@ export default class PostsController {
   /**
    * Handle form submission for the create action
    */
-  async store({ request, response }: HttpContext) {
+  async store({ request, response, auth }: HttpContext) {
+
+    // all'interno di auth.user ho i dati dell'utente autenticato
+    // (in automatico se la rotta è protta da auth_middleware)
+    const user = auth.user!
+    const userId = user.id
     // solo per test
     const data = request.all()
+    // imposto che lo user id è quello dell'utente loggato
+    data.userId = userId
 
     if (!data.title) // a titolo di esempio
       return response.badRequest("devi passarmi il titolo")
@@ -37,6 +45,8 @@ export default class PostsController {
     const id = params.id
 
     const post = await Post.findOrFail(id)
+
+    await post.load('comments')
 
     return post
   }

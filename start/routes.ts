@@ -8,6 +8,7 @@
 */
 
 import router from '@adonisjs/core/services/router'
+import { middleware } from './kernel.js'
 
 router.get('/', async () => {
   return {
@@ -32,22 +33,33 @@ router.get('ciao', () => {
 //   }
 // })
 
-// rotta show
-router.get('/users/:id', '#controllers/users_controller.show')
-// rotta index
-router.get('/users', '#controllers/users_controller.index')
-// rotta store
-router.post('/users', '#controllers/users_controller.store')
-// rotte update
-router.put('/users/:id', '#controllers/users_controller.update')
-// rotta delete
-router.delete('/users/:id', '#controllers/users_controller.destroy')
 
 // le 5 righe sopra possono essere riassunte così:
 // router.resource('/users', '#controllers/users_controller')
 
-router.resource('posts', '#controllers/posts_controller')
+router.group(() => {
+  // rotta show
+  router.get('/users/:id', '#controllers/users_controller.show')
+  // rotta index
+  router.get('/users', '#controllers/users_controller.index')
+  // rotta store
+  router.post('/users', '#controllers/users_controller.store')
+  // rotte update
+  router.put('/users/:id', '#controllers/users_controller.update')
+  // rotta delete
+  router.delete('/users/:id', '#controllers/users_controller.destroy')
+  router.resource('posts', '#controllers/posts_controller')
+  router.resource('comments', '#controllers/comments_controller')
 
+  router.get('me', '#controllers/auth_controller.me')
+
+}).use(middleware.auth())
+// .prefix('v1')
+
+
+// rotte auth
+router.post('register', '#controllers/auth_controller.register')
+router.post('login', '#controllers/auth_controller.login')
 
 // rotta per la battaglia navale con due parametri (entrambi obbligatori)
 router.get('/battaglia-navale/:row/:col', ({ params }) => {
