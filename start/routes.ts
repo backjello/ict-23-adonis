@@ -64,6 +64,7 @@ router.group(() => {
 // rotte auth
 router.post('register', '#controllers/auth_controller.register')
 router.post('login', '#controllers/auth_controller.login')
+router.post('login-google', '#controllers/auth_controller.loginGoogle')
 
 // rotta per la battaglia navale con due parametri (entrambi obbligatori)
 router.get('/battaglia-navale/:row/:col', ({ params }) => {

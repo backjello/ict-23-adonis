@@ -17,9 +17,15 @@
         async function callBe(token) {
             const result = await fetch('http://localhost:3333/login-google', {
                 method: 'POST',
-                data: JSON.stringify({
+                mode: "cors",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
                     token
-                })
+                }),
+
             })
             // ... scegliamo cosa fare con il risultato del login 
             // es: redirect home, popup, ecc

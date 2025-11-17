@@ -24,6 +24,14 @@ export default class AuthController {
         }
     }
 
+    async loginGoogle({ ally, request }: HttpContext) {
+        console.log(request.all())
+        const token = request.input('token')
+        console.log(token);
+        const user = await ally.use('google').userFromToken(token)
+        console.log(user);
+    }
+
     async me({ auth }: HttpContext) {
         return auth.user
     }
