@@ -53,7 +53,6 @@ export default class AuthController {
     }
 
     // se il token più vecchio di 15 minuti, ritorno un errore
-    console.log(codeInDB.createdAt.toMillis());
     if (codeInDB.createdAt.toMillis() + 1000 * 60 * 15 < new Date().getTime()) {
       return "il token è scaduto"
     }
@@ -75,6 +74,11 @@ export default class AuthController {
     const password = request.input('password')
 
     const user = await User.verifyCredentials(email, password)
+
+    if (!user.verifiedEmail) { // se la mail dell'utente non è verificato non gli faccio fare il login
+      await this.sendVerificationCode(user.email, user.id)
+      return "La tua email non risulta verificata. Ti abbiamo mandato un'email per verificarla"
+    }
 
     const token = await User.accessTokens.create(user)
 
