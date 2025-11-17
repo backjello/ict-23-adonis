@@ -11,6 +11,9 @@ export default class VerificationCode extends BaseModel {
   @column()
   declare token: string
 
+  @column()
+  declare userId: number
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

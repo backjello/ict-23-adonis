@@ -11,16 +11,63 @@ export default class AuthController {
     const data = request.all()
     const user = await User.create(data)
     // si può mandare una mail di conferma per verificare che la mail sia dell'utente
-    await this.sendVerificationCode(user.email)
+    await this.sendVerificationCode(user.email, user.id)
     return user
   }
 
-  async sendVerificationCode(email: string) {
+  async sendVerificationCode(email: string, userId: number) {
     const code = await VerificationCode.create({
       // a titolo di esempio, le creazioni andrebbero fatte con funzioni migliori
       code: new Date().getTime().toString().slice(-6),
-      token: crypto.randomUUID()
+      token: crypto.randomUUID(),
+      userId
     })
+
+    await mail.send((msg) => {
+      msg.from(env.get('SMTP_USER'))
+        .to(email)
+        .subject('Verifica la tua email')
+        .html(`
+          Ciao, <br>
+          Verifica la tua email mettendo nell'app il seguente codice: ${code.code} <br>
+          oppure fai click su questo <a href="http://localhost:3333/verify-email/${code.token}">link</a> <br>
+          il codice dura 15 minuti.
+          `)
+    }
+    )
+  }
+
+  async verifyEmail({ params }: HttpContext) {
+    // utilizziamo la stessa struttura per verificare sia il code che il token
+    // /verify-email/:verifyString
+
+    const verifyString = params.verifyString
+
+    let codeInDB = await VerificationCode.query()
+      .where('code', verifyString)
+      .orWhere('token', verifyString)
+      .first()
+
+    if (!codeInDB) {
+      return "non estiste questo codice di verifica"
+    }
+
+    // se il token più vecchio di 15 minuti, ritorno un errore
+    console.log(codeInDB.createdAt.toMillis());
+    if (codeInDB.createdAt.toMillis() + 1000 * 60 * 15 < new Date().getTime()) {
+      return "il token è scaduto"
+    }
+
+    const user = await User.findOrFail(codeInDB.userId)
+    user.verifiedEmail = true
+    await user.save()
+
+    // cancello tutti i codice di verifica per quell'utente
+    await VerificationCode.query()
+      .where('userId', user.id)
+      .delete()
+
+    return "la tua email è stata verificata con successo"
   }
 
   async login({ request }: HttpContext) {
