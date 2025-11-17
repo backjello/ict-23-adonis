@@ -48,7 +48,9 @@ export default class AuthController {
         password: crypto.randomUUID() // password random, meglio se più lunga e sicura ma per test va bene
       })
     }
+    // ! in linea teorica andrebbe controllato che la mail sia verificata
 
+    // creo il token e lo passo a FE
     const accessToken = await User.accessTokens.create(user)
 
     return { user, accessToken }
