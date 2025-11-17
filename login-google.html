@@ -10,12 +10,26 @@
 <body>
     <script src="https://accounts.google.com/gsi/client" async></script>
 
+    <!-- IMPORTANTE: Funziona solo da localhost, no :5000 o :4200, solo ed esclusivamente:
+     http:/localhost/.../login-google.html -->
     <script>
+
+        async function callBe(token) {
+            const result = await fetch('http://localhost:3333/login-google', {
+                method: 'POST',
+                data: JSON.stringify({
+                    token
+                })
+            })
+            // ... scegliamo cosa fare con il risultato del login 
+            // es: redirect home, popup, ecc
+        }
+
         window.onload = (() => {
             google.accounts.id.initialize({
                 client_id: "48315565897-6i3403uof617avnel62iu3jhcqo70u81.apps.googleusercontent.com",
                 scopes: ["email"],
-                callback: (token) => console.log(token)
+                callback: callBe
             })
             google.accounts.id.renderButton(
                 document.getElementById('btnGoogle'),
