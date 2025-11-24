@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <script>
+        async function invia() {
+            const text = document.getElementById('msg').value
+            if (!text)
+                return
+
+            const res = await fetch('http://localhost:3333/chat', {
+                method: 'POST',
+                body: JSON.stringify({
+                    text
+                }),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            })
+
+            const response = (await res.json()).response
+
+            const divMessaggi = document.getElementById('messaggi')
+
+            divMessaggi.innerHTML += `
+            <b>Utente</b></br>
+            <p>${text}</p>
+            <br><hr>
+            <b>Sistema</b></br>
+            <p>${response}</p>
+            <br><hr>
+            `
+        }
+    </script>
+
+    <div id="messaggi">
+
+    </div>
+
+    <div>
+        <textarea id="msg"></textarea>
+        <button onclick="invia()">Invia</button>
+    </div>
+
+
+</body>
+
+</html>

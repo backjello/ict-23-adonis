@@ -91,3 +91,6 @@ router.get('comment/:id', ({ params }) => {
     id
   }
 }).where('id', /^[0-9]+$/)
+
+
+router.post('chat', '#controllers/chats_controller.complete')
