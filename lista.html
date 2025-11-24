@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket per test</title>
+</head>
+
+<body>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"
+        integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+"
+        crossorigin="anonymous"></script>
+
+    <script>
+        const socketIo = io('http://localhost:3334')
+
+        socketIo.on('connect', () => {
+            console.log('nuova connessione')
+            socketIo.emit('identifica', 'lista')
+        })
+
+        // setInterval(() => {
+        //     socketIo.emit('evento-di-test-da-fe-a-be', { data: 'test', data2: 'test2' })
+        // }, 3000)
+
+        // socketIo.on('evento-di-test-da-be-a-fe', (data) => {
+        //     console.log('ho ricevuto un evento da backend', data)
+        // })
+
+        function chiama(numero) {
+            socketIo.emit('chiama', { numero })
+        }
+
+    </script>
+
+
+    <div>
+        <div>
+            Mario Rossi - Esami del sangue <button onclick="chiama('#001')">Chiama</button>
+        </div>
+        <div>
+            Luigi Verdi - Visita cardiologica <button onclick="chiama('#002')">Chiama</button>
+        </div>
+        <div>
+            Piero Blu - Visita otorino <button onclick="chiama('#003')">Chiama</button>
+        </div>
+        <div>
+            Giorgio Marroni - Esami del sangue <button onclick="chiama('#004')">Chiama</button>
+        </div>
+        <div>
+            Franco Gialli - Esami del sangue <button onclick="chiama('#005')">Chiama</button>
+        </div>
+    </div>
+
+</body>
+
+</html>
