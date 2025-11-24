@@ -48,5 +48,8 @@ export default await Env.create(new URL('../', import.meta.url), {
   SMTP_PASSWORD: Env.schema.string(),
 
   // chiave open ai
-  OPEN_AI_KEY: Env.schema.string()
+  OPEN_AI_KEY: Env.schema.string(),
+
+  // chiave SMS
+  SMS_API_KEY: Env.schema.string(),
 })

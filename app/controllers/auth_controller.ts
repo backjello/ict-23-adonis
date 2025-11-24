@@ -4,6 +4,7 @@ import env from '#start/env';
 import type { HttpContext } from '@adonisjs/core/http';
 import mail from '@adonisjs/mail/services/main';
 import { OAuth2Client } from 'google-auth-library';
+import { SMSAPI } from 'smsapi';
 
 export default class AuthController {
 
@@ -12,7 +13,31 @@ export default class AuthController {
     const user = await User.create(data)
     // si può mandare una mail di conferma per verificare che la mail sia dell'utente
     await this.sendVerificationCode(user.email, user.id)
+    await this.sendVerificationCodePhone(user.phoneNumber, user.id)
     return user
+  }
+
+  async sendVerificationCodePhone(phoneNumber: string, userId: number) {
+    const code = await VerificationCode.create({
+      // a titolo di esempio, le creazioni andrebbero fatte con funzioni migliori
+      code: new Date().getTime().toString().slice(-6),
+      token: crypto.randomUUID(),
+      userId
+    })
+
+    // codice per mandare SMS
+    const smsapi = new SMSAPI(env.get('SMS_API_KEY'))
+
+    // controlliamo il prefisso internazionale e nel caso lo aggiungiamo
+    if (!phoneNumber.startsWith("+"))
+      phoneNumber = "+39" + phoneNumber
+
+    await smsapi.sms.sendSms(phoneNumber, `
+      Ciao, 
+      Verifica il tuo numero di telefono con questo codice:
+      ${code.code}
+      `)
+
   }
 
   async sendVerificationCode(email: string, userId: number) {
@@ -61,13 +86,45 @@ export default class AuthController {
     user.verifiedEmail = true
     await user.save()
 
-    // cancello tutti i codice di verifica per quell'utente
     await VerificationCode.query()
-      .where('userId', user.id)
+      .where('id', codeInDB.id)
       .delete()
 
     return "la tua email è stata verificata con successo"
   }
+
+  async verifySMS({ params }: HttpContext) {
+    // utilizziamo la stessa struttura per verificare sia il code che il token
+    // /verify-email/:verifyString
+
+    const verifyString = params.verifyString
+
+    let codeInDB = await VerificationCode.query()
+      .where('code', verifyString)
+      .orWhere('token', verifyString)
+      .first()
+
+    if (!codeInDB) {
+      return "non estiste questo codice di verifica"
+    }
+
+    // se il token più vecchio di 15 minuti, ritorno un errore
+    if (codeInDB.createdAt.toMillis() + 1000 * 60 * 15 < new Date().getTime()) {
+      return "il token è scaduto"
+    }
+
+    const user = await User.findOrFail(codeInDB.userId)
+    user.verifiedPhone = true
+    await user.save()
+
+    await VerificationCode.query()
+      .where('id', codeInDB.id)
+      .delete()
+
+    return "la tua email è stata verificata con successo"
+  }
+
+
 
   async login({ request }: HttpContext) {
     const email = request.input('email')
